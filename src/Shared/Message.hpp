@@ -9,6 +9,7 @@ class Message {
 public:
     enum {
         header_length_ = 4, // bytes
+        max_nickname_size_ = 64, // bytes
         max_body_length_ = 512 // bytes
     };
 

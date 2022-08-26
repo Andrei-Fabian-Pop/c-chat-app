@@ -10,11 +10,10 @@
 #include <iostream>
 
 class Participant : public Observer {
-public:  // TODO: name
+public:
     ~Participant() override = default;
 
     void update(const Message &msg) override {
-        // TODO: implement
         std::cout << "[Participant Update]\n";
     }
 };

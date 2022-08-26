@@ -21,7 +21,9 @@ using boost::asio::ip::tcp;
 
 class Session : public Participant, public std::enable_shared_from_this<Session> {
 public:
-    Session(tcp::socket socket, Room &room) : socket_(std::move(socket)), room_(room) {}
+    Session(tcp::socket socket, Room &room) : socket_(std::move(socket)), room_(room) {
+        this->read_nickname_ = false;
+    }
 
     void start() {
         room_.join(&(*this->shared_from_this()));
@@ -45,7 +47,8 @@ private:
                     if (!ec && read_msg_.decode_header()) {
                         do_read_body();
                     } else {
-                        room_.leave(&(*this->shared_from_this()));
+                        std::cout << "Leaving room, error: " << ec.message() << std::endl;
+                        room_.leave(&(*this->shared_from_this())); // TODO: change this->shared_from_this() to self ?
                     }
                 }
         );
@@ -57,7 +60,15 @@ private:
                 boost::asio::buffer(read_msg_.body(), read_msg_.body_length()),
                 [this, self = this->shared_from_this()](boost::system::error_code ec, std::size_t bytes_transferred) {
                     if (!ec) {
-                        room_.deliver(read_msg_);
+                        if (bytes_transferred != 0) {
+                            if (!this->read_nickname_) {
+                                this->nickname_ = this->read_msg_.body();
+                                this->room_.set_nickname(self, this->nickname_);
+                                this->read_nickname_ = true;
+                            } else {
+                                room_.deliver(read_msg_, self);
+                            }
+                        }
                         do_read_header();
                     } else {
                         room_.leave(&(*this->shared_from_this()));
@@ -88,7 +99,9 @@ private:
     tcp::socket socket_;
     Room &room_;
     Message read_msg_;
+    std::string nickname_;
     chat_message_queue write_msgs_;
+    bool read_nickname_;
 };
 
 #endif //TEST_CHAT_SESSION_H
