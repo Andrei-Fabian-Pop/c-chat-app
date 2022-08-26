@@ -14,11 +14,13 @@
 #include "Participant.h"
 
 using chat_participant_ptr = std::shared_ptr<Participant>;
-using chat_message_queue = std::deque<Message>;
+using chatMessageQueue = std::deque<Message>;
 
 
 class Room : public Subject {
-public: // TODO: maybe make a default constructor
+public:
+    explicit Room() = default;
+
     void join(Observer *participant) {
         this->addObserver(participant);
         for (auto msg: recent_msgs_)
@@ -50,7 +52,7 @@ public: // TODO: maybe make a default constructor
 
 private:
     std::set<chat_participant_ptr> participants_;
-    chat_message_queue recent_msgs_;
+    chatMessageQueue recent_msgs_;
     std::unordered_map<std::shared_ptr<Participant>, std::string> name_map_;
     enum {
         max_recent_msgs = 100

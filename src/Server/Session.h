@@ -27,34 +27,34 @@ public:
 
     void start() {
         room_.join(&(*this->shared_from_this()));
-        do_read_header();
+        doReadHeader();
     }
 
     void update(const Message &msg) override {
         bool write_in_progress = !write_msgs_.empty();
         write_msgs_.push_back(msg);
         if (!write_in_progress) {
-            do_write();
+            doWrite();
         }
     }
 
 private:
-    void do_read_header() {
+    void doReadHeader() {
         boost::asio::async_read(
                 socket_,
                 boost::asio::buffer(read_msg_.data(), Message::header_length_),
                 [this, self = this->shared_from_this()](boost::system::error_code ec, std::size_t bytes_transferred) {
                     if (!ec && read_msg_.decode_header()) {
-                        do_read_body();
+                        doReadBody();
                     } else {
-                        std::cout << "Leaving room, error: " << ec.message() << std::endl;
-                        room_.leave(&(*this->shared_from_this())); // TODO: change this->shared_from_this() to self ?
+                        std::cout << "Leaving room\n";
+                        room_.leave(&(*self));
                     }
                 }
         );
     }
 
-    void do_read_body() {
+    void doReadBody() {
         boost::asio::async_read(
                 socket_,
                 boost::asio::buffer(read_msg_.body(), read_msg_.body_length()),
@@ -65,19 +65,21 @@ private:
                                 this->nickname_ = this->read_msg_.body();
                                 this->room_.set_nickname(self, this->nickname_);
                                 this->read_nickname_ = true;
+                                std::cout << this->nickname_ << " connected\n";
                             } else {
                                 room_.deliver(read_msg_, self);
                             }
                         }
-                        do_read_header();
+                        doReadHeader();
                     } else {
-                        room_.leave(&(*this->shared_from_this()));
+                        std::cout << "Leaving room\n";
+                        room_.leave(&(*self));
                     }
                 }
         );
     }
 
-    void do_write() {
+    void doWrite() {
         boost::asio::async_write(
                 socket_,
                 boost::asio::buffer(write_msgs_.front().data(),
@@ -86,11 +88,11 @@ private:
                     if (!ec) {
                         write_msgs_.pop_front();
                         if (!write_msgs_.empty()) {
-                            do_write();
+                            doWrite();
                         }
                     } else {
-                        // TODO: add error message to output
-                        room_.leave(&(*this->shared_from_this()));
+                        std::cout << "Leaving room\n";
+                        room_.leave(&(*self));
                     }
                 }
         );
@@ -100,7 +102,7 @@ private:
     Room &room_;
     Message read_msg_;
     std::string nickname_;
-    chat_message_queue write_msgs_;
+    chatMessageQueue write_msgs_;
     bool read_nickname_;
 };
 

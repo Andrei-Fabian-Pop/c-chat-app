@@ -19,7 +19,7 @@ public:
             socket_(io_service) {
         std::cout << get_ip() << " " << endpoint.port() << '\n';
 
-        do_accept();
+        doAccept();
     }
 
 private:
@@ -36,7 +36,7 @@ private:
         return addr.to_string();
     }
 
-    void do_accept() {
+    void doAccept() {
         acceptor_.async_accept(
                 socket_,
                 [this](boost::system::error_code ec) {
@@ -44,7 +44,7 @@ private:
                         std::make_shared<Session>(std::move(socket_), room_)->start();
                     }
 
-                    do_accept();
+                    doAccept();
                 }
         );
     }
