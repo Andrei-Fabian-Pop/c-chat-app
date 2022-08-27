@@ -17,3 +17,4 @@
   - `./client <ip address> <port number> <name>` - all variables are specified as arguments
 - Server app
   - `./server <port number>`
+
