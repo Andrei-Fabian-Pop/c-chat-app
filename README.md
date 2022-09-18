@@ -4,7 +4,7 @@
 
 ## Server architecture
 
-- The server app user the Observer design pattern to update all participants.
+- The server app uses the Observer design pattern to update all participants.
 - The first received message is the name of the new user (stored in a map)
 - The Participant class represents the observer in the model and the Room class represents the subject
 - The Session class is responsible with connecting the Server with the client (Participant)
